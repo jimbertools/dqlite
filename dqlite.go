@@ -21,17 +21,17 @@ const DriverName = "dqlite"
 
 type Dialector struct {
 	DriverName string
+	App        *app.App
 	Dbname     string
-	Dir        string
-	Options    []app.Option
 	Conn       gorm.ConnPool
 }
 
-func Open(options []app.Option, dir string, dbname string) gorm.Dialector {
-	return &Dialector{Options: options, Dbname: dbname, Dir: dir}
+func Open(app *app.App, dbname string) gorm.Dialector {
+	return &Dialector{App: app, Dbname: dbname}
 }
 
 func (dialector Dialector) Name() string {
+	log.Println("name")
 	return "dqlite"
 }
 
@@ -43,18 +43,15 @@ func (dialector Dialector) Initialize(db *gorm.DB) (err error) {
 	if dialector.Conn != nil {
 		db.ConnPool = dialector.Conn
 	} else {
-
+		log.Println("creating app")
 		// Set up Dqlite application
-		app, err := app.New(dialector.Dir, dialector.Options...)
-		if err != nil {
-			log.Fatal(err)
-		}
+
 		log.Println("App created")
 
 		// Create a database 'my-database' or just open it if
 		// it already exists.
 		log.Println("Opening database")
-		conn, err := app.Open(context.Background(), dialector.Dbname)
+		conn, err := dialector.App.Open(context.Background(), dialector.Dbname)
 
 		if err != nil {
 			return err
