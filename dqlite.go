@@ -28,7 +28,7 @@ type Dialector struct {
 }
 
 func Open(options []app.Option, dir string, dbname string) gorm.Dialector {
-	return &Dialector{Options: options, Dbname: dbname}
+	return &Dialector{Options: options, Dbname: dbname, Dir: dir}
 }
 
 func (dialector Dialector) Name() string {
