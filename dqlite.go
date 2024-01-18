@@ -1,12 +1,13 @@
-package sqlite
+package dqlite
 
 import (
 	"context"
-	"database/sql"
+	"log"
 	"strconv"
 
 	"gorm.io/gorm/callbacks"
 
+	"github.com/canonical/go-dqlite/app"
 	_ "github.com/mattn/go-sqlite3"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -16,20 +17,22 @@ import (
 )
 
 // DriverName is the default driver name for SQLite.
-const DriverName = "sqlite3"
+const DriverName = "dqlite"
 
 type Dialector struct {
 	DriverName string
-	DSN        string
+	Dbname     string
+	Dir        string
+	Options    []app.Option
 	Conn       gorm.ConnPool
 }
 
-func Open(dsn string) gorm.Dialector {
-	return &Dialector{DSN: dsn}
+func Open(options []app.Option, dir string, dbname string) gorm.Dialector {
+	return &Dialector{Options: options, Dbname: dbname}
 }
 
 func (dialector Dialector) Name() string {
-	return "sqlite"
+	return "dqlite"
 }
 
 func (dialector Dialector) Initialize(db *gorm.DB) (err error) {
@@ -40,7 +43,19 @@ func (dialector Dialector) Initialize(db *gorm.DB) (err error) {
 	if dialector.Conn != nil {
 		db.ConnPool = dialector.Conn
 	} else {
-		conn, err := sql.Open(dialector.DriverName, dialector.DSN)
+
+		// Set up Dqlite application
+		app, err := app.New(dialector.Dir, dialector.Options...)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("App created")
+
+		// Create a database 'my-database' or just open it if
+		// it already exists.
+		log.Println("Opening database")
+		conn, err := app.Open(context.Background(), dialector.Dbname)
+
 		if err != nil {
 			return err
 		}
