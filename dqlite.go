@@ -43,14 +43,14 @@ func (dialector Dialector) Initialize(db *gorm.DB) (err error) {
 	if dialector.Conn != nil {
 		db.ConnPool = dialector.Conn
 	} else {
-		log.Println("creating app")
+		// log.Println("creating app")
 		// Set up Dqlite application
 
-		log.Println("App created")
+		// log.Println("App created")
 
 		// Create a database 'my-database' or just open it if
 		// it already exists.
-		log.Println("Opening database")
+		// log.Println("Opening database")
 		conn, err := dialector.App.Open(context.Background(), dialector.Dbname)
 
 		if err != nil {
